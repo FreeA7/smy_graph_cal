@@ -1,0 +1,10 @@
+__pycache__
+.idea
+*.zip
+*.csv
+*.txt
+*.xlsx
+*.log
+*.doc
+*.docx
+*.dta
