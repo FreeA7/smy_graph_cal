@@ -20,7 +20,7 @@ def clear_str(s):
         1. 外国名字净化处理
         2. 美国分类（已划分）净化处理
     """
-    return re.sub(r'[^a-z0-9]', '', s.lower())
+    return re.sub(r'[^a-z0-9\-]', '', s.lower())
 
 
 def split_name(s):
@@ -42,7 +42,11 @@ def split_class(s):
         2. 删除列表中的空字符串（filter）
         3. 将列表中的字符串使用 / 进行分隔并取第2个字符串，并将字符串净化（clear_str）
     """
+    # 514/25202 | 424/250 | 514/247 | 514/25205 | 514/25211 | 514/25505 | 514/256
     # return [clear_str(i.split('/')[1]) for i in filter(None, s.split('|'))]
+
+    # A61K, A61P, C07C, C07D
+    # return [clear_str(i) for i in filter(None, s.split(','))]
 
     # 04166856-3|04072748-3|04166856-4|03868457-2
     # Durant, Graham J. | Ganellin, Charon R. | Owen, Geoffrey R. | Young, Rodney C.
