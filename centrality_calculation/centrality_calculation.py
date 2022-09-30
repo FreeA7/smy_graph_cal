@@ -14,11 +14,11 @@ import datetime
 logging.basicConfig(
     level=logging.DEBUG,
     format='%(asctime)s - %(levelname)s: %(message)s',
-    handlers=[logging.FileHandler(filename='./root.log', encoding='utf-8', mode='w')],
+    handlers=[logging.FileHandler(filename='./root_20220927.log', encoding='utf-8', mode='w')],
 )
 
-relation_file_name = 'sep_t_Sample-Cited_1985-1999_with-inventors.csv'
-net_file_name = 'sep_t_collaborated_inventions_1981-1999patents.csv'
+relation_file_name = 'sep_t_Sample424514-Cited_1985-1999_with-inventors_20220927.csv'
+net_file_name = 'sep_t_collaborated_inventions_1981-1999patents_20220927.csv'
 
 output_file = 'output_of_%s' % relation_file_name
 
@@ -55,8 +55,8 @@ def pre_process(relation_info, graph_info, year_info):
 
             year_info[primary_key] = int(get_field('focal_appyear', line, relation_headers))
 
-            focal_inventors = split_class(get_field('focal_lowers', line, relation_headers))
-            cited_inventors = split_class(get_field('cited_lowers', line, relation_headers))
+            focal_inventors = split_class(get_field('focal_inventors', line, relation_headers))
+            cited_inventors = split_class(get_field('cited_inventors', line, relation_headers))
 
             links = set()
             for focal_inventor in focal_inventors:
@@ -76,7 +76,7 @@ def pre_process(relation_info, graph_info, year_info):
             if not line:
                 break
             line = split_line(line, SEP)
-            inventors = split_class(get_field('lowers', line, net_headers))
+            inventors = split_class(get_field('inventors', line, net_headers))
             year = int(get_field('appyear', line, net_headers))
             for i in range(time_window):
                 if 1985 <= (year + i) <= 1999:

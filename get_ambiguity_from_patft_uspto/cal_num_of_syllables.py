@@ -16,7 +16,7 @@ SEP = '\t'
 SYLL_DICT = json.load(open('syll_dict.json', 'r', encoding='utf-8'))
 SEEN = set(json.load(open('seen.json', 'r', encoding='utf-8')))
 
-HEAD = ['num_of_word_abstract', 'abstract_flesch', 'abstract_gunning', 'abstract_kincaid',
+HEAD = ['patent', 'num_of_word_abstract', 'abstract_flesch', 'abstract_gunning', 'abstract_kincaid',
         'num_of_word_description', 'description_flesch', 'description_gunning', 'description_kincaid',
         'num_of_word_all', 'all_flesch', 'all_gunning', 'all_kincaid']
 
@@ -58,7 +58,7 @@ if __name__ == '__main__':
     with open('output.txt', 'r', encoding='utf-8') as f:
         line_org = f.readline()
         # out.write(line_org[:-1])
-        out.write(SEP + SEP.join(HEAD) + '\n')
+        out.write(SEP.join(HEAD) + '\n')
         out.flush()
         headers = {v: i for i, v in enumerate(split_line(line_org, SEP))}
         while 1:
@@ -71,6 +71,7 @@ if __name__ == '__main__':
             ab_res = cal_syllables(get_field('abstract', line, headers))
             de_res = cal_syllables(get_field('description', line, headers))
             all_res = cal_syllables(get_field('abstract', line, headers) + ' || ' + get_field('description', line, headers))
+            out.write(get_field('patent', line, headers))
             out.write(SEP + SEP.join([num2str(r) for r in ab_res]))
             out.write(SEP + SEP.join([num2str(r) for r in de_res]))
             out.write(SEP + SEP.join([num2str(r) for r in all_res]) + '\n')

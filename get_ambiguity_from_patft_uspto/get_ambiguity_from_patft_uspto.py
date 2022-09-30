@@ -131,9 +131,18 @@ def process(input_queue, output_queue, pid):
 
             info['patent'] = patent
             info['patent_id'] = soup.find(text=re.compile(r'United States Patent[^:]')).findNext().text
-            info['inv'] = soup.find(text=re.compile(
-                r'United States Patent[^:]')).findNext().findNext().findNext().findNext().findNext().findNext().findNext().findAll(
-                'td')[0].text
+            try:
+                info['inv'] = soup.find(text=re.compile(
+                    r'United States Patent[^:]')).findNext().findNext().findNext().findNext().findNext().findNext().findNext().findAll(
+                    'td')[0].text
+            except IndexError:
+                count += 1
+                logging.warning(
+                    '[%d/%d] %s专利没有信息，url : %s' % (pid, NUM_WORKERS, patent, res.url))
+                print('[%d/%d] %s专利没有信息，url : %s' % (pid, NUM_WORKERS, patent, res.url))
+                with open('output.txt', 'a', encoding='utf-8') as f:
+                    f.write(SEP.join([re.sub(r'[\t\n]', ' ', info[key]).strip() for key in OUTPUT_SEQ]) + '\n')
+                continue
             info['inv_date'] = soup.find(text=re.compile(
                 r'United States Patent[^:]')).findNext().findNext().findNext().findNext().findNext().findNext().findNext().findAll(
                 'td')[1].text
@@ -142,12 +151,31 @@ def process(input_queue, output_queue, pid):
             except AttributeError:
                 logging.warning(
                     '[%d/%d] %s专利没有找到 Abstract 信息，url : %s' % (pid, NUM_WORKERS, patent, res.url))
-            info['inventors'] = soup.find(text='Inventors:').findNext().text
-            info['assignee'] = soup.find(text='Assignee:').findNext().text
-            info['family_id'] = soup.find(text=re.compile(r'Family ID:')).findNext().text
-            info['appl_no'] = soup.find(text=re.compile(r'Appl. No.:')).findNext().text
-            info['filed'] = soup.find(text=re.compile(r'Filed:')).findNext().text
-
+            try:
+                info['inventors'] = soup.find(text='Inventors:').findNext().text
+            except AttributeError:
+                logging.warning(
+                    '[%d/%d] %s专利没有找到 Inventors 信息，url : %s' % (pid, NUM_WORKERS, patent, res.url))
+            try:
+                info['assignee'] = soup.find(text='Assignee:').findNext().text
+            except AttributeError:
+                logging.warning(
+                    '[%d/%d] %s专利没有找到 Assignee 信息，url : %s' % (pid, NUM_WORKERS, patent, res.url))
+            try:
+                info['family_id'] = soup.find(text=re.compile(r'Family ID:')).findNext().text
+            except AttributeError:
+                logging.warning(
+                    '[%d/%d] %s专利没有找到 Family ID 信息，url : %s' % (pid, NUM_WORKERS, patent, res.url))
+            try:
+                info['appl_no'] = soup.find(text=re.compile(r'Appl. No.:')).findNext().text
+            except AttributeError:
+                logging.warning(
+                    '[%d/%d] %s专利没有找到 Appl. No.信息，url : %s' % (pid, NUM_WORKERS, patent, res.url))
+            try:
+                info['filed'] = soup.find(text=re.compile(r'Filed:')).findNext().text
+            except AttributeError:
+                logging.warning(
+                    '[%d/%d] %s专利没有找到 Filed 信息，url : %s' % (pid, NUM_WORKERS, patent, res.url))
             try:
                 node = soup.find(text='Related U.S. Patent Documents').findNext().findNext()
                 for row in node.findAll('tr')[1:-1]:
@@ -157,11 +185,27 @@ def process(input_queue, output_queue, pid):
                 logging.warning(
                     '[%d/%d] %s专利没有找到 Related U.S. Patent Documents 信息，url : %s' % (pid, NUM_WORKERS, patent, res.url))
 
-            info['current_us_class'] = soup.find(text='Current U.S. Class:').findNext().text
-            info['current_cpc_class'] = soup.find(text=re.compile(r'Current CPC Class:')).findNext().text
-            info['current_international_class'] = soup.find(
-                text=re.compile(r'Current International Class:')).findNext().text
-            info['field_of_search'] = soup.find(text=re.compile(r'Field of Search:')).findNext().text
+            try:
+                info['current_us_class'] = soup.find(text='Current U.S. Class:').findNext().text
+            except AttributeError:
+                logging.warning(
+                    '[%d/%d] %s专利没有找到 Current U.S. Class 信息，url : %s' % (pid, NUM_WORKERS, patent, res.url))
+            try:
+                info['current_cpc_class'] = soup.find(text=re.compile(r'Current CPC Class:')).findNext().text
+            except AttributeError:
+                logging.warning(
+                    '[%d/%d] %s专利没有找到 Current CPC Class 信息，url : %s' % (pid, NUM_WORKERS, patent, res.url))
+            try:
+                info['current_international_class'] = soup.find(
+                    text=re.compile(r'Current International Class:')).findNext().text
+            except AttributeError:
+                logging.warning(
+                    '[%d/%d] %s专利没有找到 Current International Class 信息，url : %s' % (pid, NUM_WORKERS, patent, res.url))
+            try:
+                info['field_of_search'] = soup.find(text=re.compile(r'Field of Search:')).findNext().text
+            except AttributeError:
+                logging.warning(
+                    '[%d/%d] %s专利没有找到 Field of Search 信息，url : %s' % (pid, NUM_WORKERS, patent, res.url))
 
             try:
                 node = soup.find(text='U.S. Patent Documents').findNext()
@@ -182,12 +226,15 @@ def process(input_queue, output_queue, pid):
                     '[%d/%d] %s专利没有找到 Foreign Patent Documents 信息，url : %s' % (pid, NUM_WORKERS, patent, res.url))
 
             # 按照规则出现标题description之后的部分全都是描述
-            node = soup.find(text='Description')
-            while node.next:
-                node = node.next
-                if node.text.strip():
-                    info['description'] += node.text.strip() + ' || '
-
+            try:
+                node = soup.find(text='Description')
+                while node.next:
+                    node = node.next
+                    if node.text.strip():
+                        info['description'] += node.text.strip() + ' || '
+            except AttributeError:
+                logging.warning(
+                    '[%d/%d] %s专利没有找到 Description 信息，url : %s' % (pid, NUM_WORKERS, patent, res.url))
 
             # info['mohudu'], info['keduxing'], info['mohudu_fog'] = get_ambiguity_from_description(info['description'])
 
@@ -205,6 +252,7 @@ def process(input_queue, output_queue, pid):
 
         except Exception as e:
             logging.error('[%d/%d] %s专利信息抓取错误，url : %s' % (pid, NUM_WORKERS, patent, res.url))
+            print('[%d/%d] %s专利信息抓取错误，url : %s' % (pid, NUM_WORKERS, patent, res.url))
             logging.exception(e)
 
     output_queue.put(1)
@@ -215,14 +263,35 @@ if __name__ == '__main__':
     input_queue = manager.Queue()
     output_queue = manager.Queue()
 
+    seen = set()
+
+    with open('output_20220910.txt', 'r', encoding='utf-8') as f:
+        while 1:
+            line = f.readline()
+            if not line:
+                break
+            else:
+                line = line.split('\t')
+                seen.add(line[0])
+
+    with open('output_2.txt', 'r', encoding='utf-8') as f:
+        while 1:
+            line = f.readline()
+            if not line:
+                break
+            else:
+                line = line.split('\t')
+                seen.add(line[0])
+
     with open('./Final-Sample_patent_1985-1999.txt', 'r') as f:
         for patent in f.read().split('\n'):
-            input_queue.put(patent)
+            if patent not in seen:
+                input_queue.put(patent)
 
     num_of_input = input_queue.qsize()
 
-    # with open('output.txt', 'w', encoding='utf-8') as f:
-    #     f.write(SEP.join(OUTPUT_SEQ) + '\n')
+    with open('output.txt', 'w', encoding='utf-8') as f:
+        f.write(SEP.join(OUTPUT_SEQ) + '\n')
 
     logging.info('[main] 预处理完毕，开始启动子进程')
     process(input_queue, output_queue, 1)

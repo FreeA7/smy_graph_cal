@@ -130,7 +130,7 @@ def get_average_shortest_path_length(G):
         return 1
 
 
-def cal_one_layer_graph_index(G, nodes):
+def cal_graph_index(G, nodes):
     """
     计算单层图的指数
     单层图：只计算节点直接连接的权重信息，不计算间接连接的信息
