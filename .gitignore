@@ -5,6 +5,7 @@ __pycache__
 *.txt
 *.xls
 *.xlsx
+*.xls
 *.log
 *.doc
 *.docx
