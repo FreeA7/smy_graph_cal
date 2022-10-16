@@ -14,11 +14,11 @@ import datetime
 logging.basicConfig(
     level=logging.DEBUG,
     format='%(asctime)s - %(levelname)s: %(message)s',
-    handlers=[logging.FileHandler(filename='./root_20220927.log', encoding='utf-8', mode='w')],
+    handlers=[logging.FileHandler(filename='./root.log', encoding='utf-8', mode='w')],
 )
 
-relation_file_name = 'sep_t_Sample424514-Cited_1985-1999_with-inventors_20220927.csv'
-net_file_name = 'sep_t_collaborated_inventions_1981-1999patents_20220927.csv'
+relation_file_name = 'sep_t_Sample424514-Cited_1985-1999_with-inventors_20221009_cited_424-514.csv'
+net_file_name = 'sep_t_collaborated_inventions_1981-1999patents_20221009_cited_424-514.csv'
 
 output_file = 'output_of_%s' % relation_file_name
 

@@ -26,7 +26,7 @@ import datetime
 SEP = '\t'
 NUM_WORKERS = 8
 
-FILENAME = 'sep_t_Final-Sample_1985-1999_Pharma_424-514_with-components'
+FILENAME = 'sep_t_knowledge_pool_patents-with_subcomponents_citing424-514'
 
 OUTPUT_SEQ = ['degree_centrality', 'degree_centrality_normal', 'degree_centrality_weight',
               'between_centrality', 'between_centrality_normal',
@@ -38,9 +38,11 @@ GRAPH_SEQ = ['clustering_without_zero', 'clustering_coefficient',
              'clustering_weight', 'average_path_length', 'density']
 
 # primary_key可以使用的字段变成可配置的
-PRIMARY_KEYS = ['appyear', 'pdpass']
+PRIMARY_KEYS = ['lower', 'pdpass_focal', 'patent_internal1']
 
-TARGET = 'uspc_components'
+TARGET = 'sub_components'
+
+patent_field = 'citing_interpat1'
 
 
 
@@ -49,8 +51,6 @@ import multiprocessing
 import logging
 
 from utils import *
-
-# from smy_code_20220408.utils import *
 
 
 logging.basicConfig(
@@ -63,7 +63,6 @@ logging.basicConfig(
 def pre_process(path):
     data = defaultdict(list)
     line_count = 1
-    # ava_count = 0
 
     keyss = defaultdict(set)
 
@@ -80,7 +79,7 @@ def pre_process(path):
             primary_key = '&'.join((get_field(key, line, headers) for key in PRIMARY_KEYS))
 
             # 去重
-            patent = get_field('patent', line, headers)
+            patent = get_field(patent_field, line, headers)
             if patent in keyss[primary_key]:
                 continue
             else:
@@ -98,11 +97,6 @@ def pre_process(path):
             if not inventors:
                 continue
 
-            # ava_count += 1
-
-            # if ava_count <= caled_num:
-            #     continue
-
             data[primary_key].append(inventors)
             res_input_queue.put((line, inventors, line_count))
 
@@ -110,6 +104,7 @@ def pre_process(path):
 
 
 def generate_graphs(data, pid):
+    logging.debug('[%d/%d][process] 进程已启动' % (pid, NUM_WORKERS))
     while not graph_input_queue.empty():
         try:
             G = nx.Graph()
@@ -128,14 +123,17 @@ def generate_graphs(data, pid):
             logging.error('[%d/%d][generate_graphs] 图生成错误 %s' % (pid, NUM_WORKERS, primary_key))
             logging.exception(e)
 
-    graph_output_queue.put(1)
+    logging.debug('[%d/%d][process] 进程已结束' % (pid, NUM_WORKERS))
+    graph_output_queue.put(pid)
 
 
-def process(headers, graph_info, pid):
+def process(headers, pid):
+    logging.debug('[%d/%d][process] 进程已启动' % (pid, NUM_WORKERS))
     while not res_input_queue.empty():
         try:
             line, inventors, count = res_input_queue.get()
             primary_key = '&'.join((get_field(key, line, headers) for key in PRIMARY_KEYS))
+            logging.debug('[%d/%d][process] 获取到图 %s 行号为 %d' % (pid, NUM_WORKERS, primary_key, count))
 
             G_info = graph_info[primary_key]
 
@@ -154,30 +152,12 @@ def process(headers, graph_info, pid):
             logging.error(line)
             logging.exception(e)
 
-    res_output_queue.put(1)
+    logging.debug('[%d/%d][process] 进程已结束' % (pid, NUM_WORKERS))
+    res_output_queue.put(pid)
 
 
 if __name__ == '__main__':
-    # for i in range(15):
-    #     filter_col = 'w_begin%d' % (1981 + i)
-    #
-    #     logging.info('[main] -----------* 开始进行 %s *-----------' % filter_col)
-    #
-    #     output_file = 'output_%s_%s_1.2.2.csv' % (filter_col, FILENAME)
-
-        # # 断点继续
-        # caled_num = 0
-        # if os.path.exists(output_file):
-        #     with open(output_file, 'r', encoding='utf-8') as f:
-        #         line = f.readline()
-        #         while 1:
-        #             line = f.readline()
-        #             if not line:
-        #                 break
-        #             else:
-        #                 caled_num += 1
-
-    output_file = 'output_%s_1.2.1.csv' % FILENAME
+    output_file = 'output_%s.csv' % FILENAME
 
     manager = multiprocessing.Manager()
     res_input_queue = manager.Queue()
@@ -186,7 +166,7 @@ if __name__ == '__main__':
     graph_input_queue = manager.Queue()
     graph_output_queue = manager.Queue()
 
-    graph_info = dict()
+    graph_info = manager.dict()
 
     logging.info('[main] ----------- 开始进行数据预处理 -----------')
     data, headers, headers_line = pre_process('./%s.csv' % FILENAME)
@@ -216,14 +196,15 @@ if __name__ == '__main__':
             end_time_l = datetime.datetime.now()
             con = graph_output_queue.get()
             if isinstance(con, int):
-                worker_count += con
+                worker_count += 1
+                logging.info('[main] %d/%d 进程%d已结束' % (worker_count, NUM_WORKERS, con))
                 if worker_count == NUM_WORKERS:
                     break
             elif isinstance(con, tuple):
                 primary_key, res = con
                 graph_info[primary_key] = res
                 finish_count += 1
-                logging.info('[main] %d/%d 已处理' % (finish_count, graph_num_of_input))
+                logging.info('[main] %d/%d 图已构建完毕' % (finish_count, graph_num_of_input))
             else:
                 raise TypeError('Unavailable Type!')
         else:
@@ -240,16 +221,15 @@ if __name__ == '__main__':
     del graph_input_queue
     del graph_output_queue
 
-    logging.info('[main] ----------- 开始计算最终结果 -----------')
+    logging.info('[main] ----------- 开始计算最终结果，需要处理的数据有%d -----------' % res_num_of_input)
 
-    # process(headers, res_input_queue, res_output_queue, 1)
+    # process(headers, 1)
 
     pool = multiprocessing.Pool(NUM_WORKERS)
     for i in range(NUM_WORKERS):
-        pool.apply_async(process, args=(headers, graph_info, i + 1))
+        pool.apply_async(process, args=(headers, i + 1))
     pool.close()
 
-    # if not caled_num:
     with open(output_file, 'w', encoding='utf-8') as f:
         f.write(headers_line[:-1] + SEP + SEP.join(OUTPUT_SEQ) + '\n')
 
@@ -263,7 +243,8 @@ if __name__ == '__main__':
             end_time_l = datetime.datetime.now()
             con = res_output_queue.get()
             if isinstance(con, int):
-                worker_count += con
+                worker_count += 1
+                logging.info('[main] %d/%d 进程%d已结束' % (worker_count, NUM_WORKERS, con))
                 if worker_count == NUM_WORKERS:
                     break
             elif isinstance(con, tuple):
@@ -274,7 +255,7 @@ if __name__ == '__main__':
                         f.write(SEP + num2str(res.get(key)))
                     f.write('\n')
                 finish_count += 1
-                logging.info('[main] %d/%d 已处理' % (finish_count, res_num_of_input))
+                logging.info('[main] %d/%d 已计算结束' % (finish_count, res_num_of_input))
             else:
                 raise TypeError('Unavailable Type!')
         else:
