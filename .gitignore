@@ -3,6 +3,7 @@ __pycache__
 *.zip
 *.csv
 *.txt
+*.xls
 *.xlsx
 *.log
 *.doc
