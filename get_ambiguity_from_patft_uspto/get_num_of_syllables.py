@@ -3,6 +3,11 @@
 Created on Sat Jun  4 23:23:26 2022
 
 @author: FreeA7
+
+根据专利信息计算单词与音节书的对照dict
+
+执行顺序为：
+爬虫抓取专利信息 ——> 计算单词音节数量 ——> 计算模糊度
 """
 import json
 

@@ -4,10 +4,10 @@ Created on Thur Apr  7 11:22:19 2022
 
 @author: FreeA7
 
+根据patent id来获取patent的信息
 
-按照你所给的Patent_id抓取相关信息并计算模糊度
-目前爬虫部分我已经调试完毕，但是模糊度计算特别慢
-我觉得是因为描述都特别长导致的
+执行顺序为：
+爬虫抓取专利信息 ——> 计算单词音节数量 ——> 计算模糊度
 """
 
 import multiprocessing

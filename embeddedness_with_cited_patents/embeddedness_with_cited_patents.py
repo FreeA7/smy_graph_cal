@@ -3,6 +3,9 @@
 Created on Sat Sep 24 14:01:24 2022
 
 @author: FreeA7
+
+embeddedness with cited patents
+通过计算核心专利的发明人与被引用专利的发明人之间的合作关系（一阶/二阶）的中心度来衡量嵌入性
 """
 
 from utils import *

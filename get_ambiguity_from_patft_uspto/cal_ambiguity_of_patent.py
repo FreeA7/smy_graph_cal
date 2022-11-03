@@ -3,6 +3,12 @@
 Created on Sat Jun  4 23:23:26 2022
 
 @author: FreeA7
+
+爬取专利信息后，计算模糊度
+输入为：output.txt
+
+执行顺序为：
+爬虫抓取专利信息 ——> 计算单词音节数量 ——> 计算模糊度
 """
 import json
 
@@ -21,7 +27,7 @@ HEAD = ['patent', 'num_of_word_abstract', 'abstract_flesch', 'abstract_gunning',
         'num_of_word_all', 'all_flesch', 'all_gunning', 'all_kincaid']
 
 
-def cal_syllables(s):
+def cal_ambiguity_of_paragraph(s):
     num_of_sentences = 0
     num_of_words = 0
     num_of_sylls = 0
@@ -68,9 +74,9 @@ if __name__ == '__main__':
                 break
             line = split_line(line_org, SEP)
             start = datetime.now()
-            ab_res = cal_syllables(get_field('abstract', line, headers))
-            de_res = cal_syllables(get_field('description', line, headers))
-            all_res = cal_syllables(get_field('abstract', line, headers) + ' || ' + get_field('description', line, headers))
+            ab_res = cal_ambiguity_of_paragraph(get_field('abstract', line, headers))
+            de_res = cal_ambiguity_of_paragraph(get_field('description', line, headers))
+            all_res = cal_ambiguity_of_paragraph(get_field('abstract', line, headers) + ' || ' + get_field('description', line, headers))
             out.write(get_field('patent', line, headers))
             out.write(SEP + SEP.join([num2str(r) for r in ab_res]))
             out.write(SEP + SEP.join([num2str(r) for r in de_res]))

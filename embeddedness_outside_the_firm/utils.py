@@ -137,17 +137,17 @@ def cal_one_layer_graph_index(G, nodes):
         return res
 
     # 图通用信息
-    clustering = nx.clustering(G)
-    clustering_weight = nx.clustering(G, weight='weight')
-    try:
-        res['clustering_without_zero'] = nx.average_clustering(G, count_zeros=False)
-    except ZeroDivisionError:
-        res['clustering_without_zero'] = 0
-    res['clustering_coefficient'] = sum((clustering.get(node) for node in clustering.keys())) / num_of_graph_nodes
-    res['clustering_weight'] = sum(
-        (clustering_weight.get(node) for node in clustering_weight.keys())) / num_of_graph_nodes
-    res['average_path_length'] = get_average_shortest_path_length(G)
-    res['density'] = nx.density(G)
+    # clustering = nx.clustering(G)
+    # clustering_weight = nx.clustering(G, weight='weight')
+    # try:
+    #     res['clustering_without_zero'] = nx.average_clustering(G, count_zeros=False)
+    # except ZeroDivisionError:
+    #     res['clustering_without_zero'] = 0
+    # res['clustering_coefficient'] = sum((clustering.get(node) for node in clustering.keys())) / num_of_graph_nodes
+    # res['clustering_weight'] = sum(
+    #     (clustering_weight.get(node) for node in clustering_weight.keys())) / num_of_graph_nodes
+    # res['average_path_length'] = get_average_shortest_path_length(G)
+    # res['density'] = nx.density(G)
 
     # 一个人发明专利
     if num_of_nodes == 1:
