@@ -10,7 +10,7 @@ Embeddedness outside the Firm
 
 
 SEP = '\t'
-NUM_WORKERS = 8
+NUM_WORKERS = 24
 
 FILENAME = 'sep_tab_1985_1999_A-Sample'
 
