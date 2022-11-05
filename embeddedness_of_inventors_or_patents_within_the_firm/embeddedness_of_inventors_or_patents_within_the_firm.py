@@ -80,8 +80,8 @@ def pre_process(path):
             #     continue
 
             # 筛选行业为424 514
-            # if get_field(TARGET, line, headers)[:3] not in ('424', '514'):
-            #     continue
+            if get_field(TARGET, line, headers)[:3] not in ('424', '514'):
+                continue
 
             inventors = split_class(get_field(TARGET, line, headers))
             if not inventors:

@@ -11,7 +11,12 @@ Embeddedness outside the Firm
 
 SEP = '\t'
 NUM_WORKERS = 8
+
 FILENAME = 'sep_tab_1985_1999_A-Sample'
+
+MERGE_OR_NOT = True
+OLD_OUTPUT_FILENAME = 'output_sep_tab_1985_1999_A-Sample_all'
+
 TARGET_FIELD = 'USPC-Derwent'
 YEAR_FIELD = 'focal_yeart'
 PANTENT_FIELD = 'focal_patent'
@@ -43,6 +48,23 @@ GRAPH_SEQ = ['clustering_without_zero', 'clustering_coefficient',
 
 def pre_process(year_com_inv):
     patents = set()
+    if OLD_OUTPUT_FILENAME:
+        if MERGE_OR_NOT:
+            with open('output_%s.csv' % FILENAME, 'r', encoding='utf-8') as f:
+                f.readline()
+                content = f.read()
+            with open('%s.csv' % OLD_OUTPUT_FILENAME, 'a', encoding='utf-8') as f:
+                f.write(content)
+        with open('%s.csv' % OLD_OUTPUT_FILENAME, 'r', encoding='utf-8') as f:
+            headers = {v: i for i, v in enumerate(split_line(f.readline(), SEP))}
+            while 1:
+                line = f.readline()
+                if not line:
+                    break
+                line = split_line(line, SEP)
+                patent = get_field(PANTENT_FIELD, line, headers)
+                patents.add(patent)
+
     with open('%s.csv' % FILENAME, 'r', encoding='utf-8') as f:
         headers = {v: i for i, v in enumerate(split_line(f.readline(), SEP))}
         while 1:
