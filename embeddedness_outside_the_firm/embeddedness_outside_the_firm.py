@@ -87,6 +87,9 @@ def pre_process(year_com_inv):
             pdpass = get_field(PDPASS_FIELD, line, headers)
             inventors = split_class(get_field(TARGET_FIELD, line, headers))
 
+            if not inventors:
+                continue
+
             if appyear not in year_com_inv.keys():
                 year_com_inv[appyear] = dict()
             if pdpass not in year_com_inv[appyear].keys():
@@ -94,7 +97,6 @@ def pre_process(year_com_inv):
             year_com_inv[appyear][pdpass].append(inventors)
 
             input_queue.put((line_org, patent, appyear, pdpass, inventors))
-
 
 
 def process(year_com_inv, pid):
