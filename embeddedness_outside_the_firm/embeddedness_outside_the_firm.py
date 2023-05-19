@@ -12,15 +12,15 @@ Embeddedness outside the Firm
 SEP = '\t'
 NUM_WORKERS = 24
 
-FILENAME = 'sep_tab_1985_1999_A-Sample'
+FILENAME = '202305192300_new'
 
-MERGE_OR_NOT = True
-OLD_OUTPUT_FILENAME = 'output_sep_tab_1985_1999_A-Sample_all'
+MERGE_OR_NOT = False
+OLD_OUTPUT_FILENAME = ''
 
-TARGET_FIELD = 'USPC-Derwent'
-YEAR_FIELD = 'focal_yeart'
-PANTENT_FIELD = 'focal_patent'
-PDPASS_FIELD = 'focal_pdpass'
+TARGET_FIELD = '美国分类已划分'
+YEAR_FIELD = 'appyear'
+PANTENT_FIELD = 'patent_extract'
+PDPASS_FIELD = 'gvkey'
 
 
 import logging
@@ -90,6 +90,9 @@ def pre_process(year_com_inv):
             if not inventors:
                 continue
 
+            if appyear > 2016:
+                continue
+
             if appyear not in year_com_inv.keys():
                 year_com_inv[appyear] = dict()
             if pdpass not in year_com_inv[appyear].keys():
@@ -102,14 +105,15 @@ def pre_process(year_com_inv):
 def process(year_com_inv, pid):
     while not input_queue.empty():
         line_org, patent, appyear, pdpass, inventors = input_queue.get()
+
         try:
             logging.debug('[%d/%d] - 开始构建专利图 %s -' % (pid, NUM_WORKERS, patent))
             G = nx.Graph()
 
             # 不同公司的专利构图
-            for com in year_com_inv[appyear].keys():
+            for com in year_com_inv[appyear - 1].keys():
                 if com != pdpass:
-                    for inv in year_com_inv[appyear][com]:
+                    for inv in year_com_inv[appyear - 1][com]:
                         build_graph(G, inv)
 
             # 本专利构图
